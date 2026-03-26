@@ -1,0 +1,33 @@
+# ─── Java / Maven ───────────────────────────────
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Node / React ───────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ─── Spring Boot secrets ────────────────────────
+backend/src/main/resources/application-local.properties
+backend/.env
+
+# ─── Docker ─────────────────────────────────────
+.env
+
+# ─── IDEs ───────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── OS junk ────────────────────────────────────
+.DS_Store
+Thumbs.db
