@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Tasks from './pages/Tasks'
+import Admin from './pages/Admin'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -19,6 +20,11 @@ function App() {
       <Route path="/tasks" element={
         <ProtectedRoute>
           <Tasks />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <ProtectedRoute adminOnly={true}>
+          <Admin />
         </ProtectedRoute>
       } />
     </Routes>
