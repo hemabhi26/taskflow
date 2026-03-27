@@ -7,19 +7,19 @@ A full-stack task management app built with React, Spring Boot, MySQL, and Docke
 ## Screenshots
 
 ### Login Page
-![Login]<img src="docs/screenshots/login.png" width="400"/>
+<img src="docs/screenshots/login.png" width="400"/>
 
 ### Dashboard
-![Dashboard]<img src="docs/screenshots/dashboard.png" width="700"/>
+<img src="docs/screenshots/dashboard.png" width="700"/>
 
 ### Tasks Page
-![Tasks]<img src="docs/screenshots/tasks.png" width="700"/>
+<img src="docs/screenshots/tasks.png" width="700"/>
 
 ### New Task Modal
-![New Task]<img src="docs/screenshots/new-task.png" width="350"/>
+<img src="docs/screenshots/new-task.png" width="350"/>
 
 ### Edit Task Modal
-![Edit Task]<img src="docs/screenshots/edit-task.png" width="350"/>
+<img src="docs/screenshots/edit-task.png" width="350"/>
 
 
 
