@@ -1,5 +1,7 @@
 # TaskFlow — Task Management System
 
+![CI Pipeline](https://github.com/hemabhi26/taskflow/actions/workflows/ci.yml/badge.svg)
+
 A full-stack task management app built with React, Spring Boot, MySQL, and Docker.
 
 ## Tech Stack
