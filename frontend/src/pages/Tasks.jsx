@@ -9,6 +9,7 @@ export default function Tasks() {
   const [tasks, setTasks] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [statusFilter, setStatusFilter] = useState('ALL')
@@ -30,23 +31,29 @@ export default function Tasks() {
   }
 
   const fetchTasks = async () => {
+    setLoading(true)
+    setError('')
     try {
       const res = await getTasks()
       setTasks(res.data)
     } catch (err) {
-      console.error('Failed to fetch tasks', err)
+      setError('Failed to load tasks. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleSave = async (form) => {
-    if (editTask?.id) {
-      await updateTask(editTask.id, form)
-    } else {
-      await createTask(form)
+    try {
+      if (editTask?.id) {
+        await updateTask(editTask.id, form)
+      } else {
+        await createTask(form)
+      }
+      fetchTasks()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save task. Please try again.')
     }
-    fetchTasks()
   }
 
   const handleEdit = (task) => {
@@ -56,8 +63,12 @@ export default function Tasks() {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this task?')) {
-      await deleteTask(id)
-      fetchTasks()
+      try {
+        await deleteTask(id)
+        fetchTasks()
+      } catch (err) {
+        setError('Failed to delete task. Please try again.')
+      }
     }
   }
 
@@ -99,6 +110,30 @@ export default function Tasks() {
             + New Task
           </button>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="flex items-center justify-between bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-red-500">!</span>
+              <span>{error}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={fetchTasks}
+                className="text-red-600 underline hover:no-underline text-xs font-medium"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => setError('')}
+                className="text-red-400 hover:text-red-600 font-bold text-lg leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div className="mb-3">
@@ -149,7 +184,10 @@ export default function Tasks() {
 
         {/* Tasks Grid */}
         {loading ? (
-          <div className="text-center py-16 text-gray-400">Loading tasks...</div>
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <p className="text-gray-400 text-sm">Loading tasks...</p>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p className="text-lg mb-2">No tasks found</p>

@@ -12,6 +12,7 @@ export default function Admin() {
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [currentUser, setCurrentUser] = useState(null)
 
   // user edit modal state
@@ -36,24 +37,30 @@ export default function Admin() {
   }
 
   const fetchData = async () => {
+    setLoading(true)
+    setError('')
     try {
       const [tasksRes, usersRes] = await Promise.all([getTasks(), getUsers()])
       setTasks(tasksRes.data)
       setUsers(usersRes.data)
     } catch (err) {
-      console.error('Failed to fetch data', err)
+      setError('Failed to load data. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleSaveTask = async (form) => {
-    if (editTask?.id) {
-      await updateTask(editTask.id, form)
-    } else {
-      await createTask(form)
+    try {
+      if (editTask?.id) {
+        await updateTask(editTask.id, form)
+      } else {
+        await createTask(form)
+      }
+      fetchData()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save task. Please try again.')
     }
-    fetchData()
   }
 
   const handleEditTask = (task) => {
@@ -63,15 +70,23 @@ export default function Admin() {
 
   const handleDeleteTask = async (id) => {
     if (window.confirm('Delete this task?')) {
-      await deleteTask(id)
-      fetchData()
+      try {
+        await deleteTask(id)
+        fetchData()
+      } catch (err) {
+        setError('Failed to delete task. Please try again.')
+      }
     }
   }
 
   const handleDeleteUser = async (id) => {
     if (window.confirm('Delete this user? This will also delete their tasks!')) {
-      await deleteUser(id)
-      fetchData()
+      try {
+        await deleteUser(id)
+        fetchData()
+      } catch (err) {
+        setError('Failed to delete user. Please try again.')
+      }
     }
   }
 
@@ -109,6 +124,14 @@ export default function Admin() {
     LOW: 'bg-green-100 text-green-600',
   }
 
+  // Shared spinner component
+  const Spinner = () => (
+    <div className="flex flex-col items-center justify-center py-12 gap-3">
+      <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <p className="text-gray-400 text-sm">Loading...</p>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -119,6 +142,30 @@ export default function Admin() {
           <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all users and tasks</p>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="flex items-center justify-between bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-red-500">!</span>
+              <span>{error}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={fetchData}
+                className="text-red-600 underline hover:no-underline text-xs font-medium"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => setError('')}
+                className="text-red-400 hover:text-red-600 font-bold text-lg leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -176,9 +223,7 @@ export default function Admin() {
                 + New Task
               </button>
             </div>
-            {loading ? (
-              <div className="text-center py-8 text-gray-400">Loading...</div>
-            ) : (
+            {loading ? <Spinner /> : (
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
@@ -191,7 +236,11 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {tasks.map(task => (
+                  {tasks.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-8 text-gray-400">No tasks yet</td>
+                    </tr>
+                  ) : tasks.map(task => (
                     <tr key={task.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{task.title}</td>
                       <td className="px-4 py-3 text-gray-500">{task.assignedToName || '—'}</td>
@@ -236,9 +285,7 @@ export default function Admin() {
             <div className="p-4 border-b">
               <h2 className="font-semibold text-gray-800">All Users</h2>
             </div>
-            {loading ? (
-              <div className="text-center py-8 text-gray-400">Loading...</div>
-            ) : (
+            {loading ? <Spinner /> : (
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-600">
                   <tr>
