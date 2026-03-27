@@ -59,6 +59,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/taskflowdb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: taskflow123
+          SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
         run: ./mvnw test
 
   frontend-build:
