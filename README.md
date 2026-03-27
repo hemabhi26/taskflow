@@ -4,27 +4,6 @@
 
 A full-stack task management app built with React, Spring Boot, MySQL, and Docker.
 
-## Screenshots
-
-### Login Page
-<img src="docs/screenshots/login.png" width="400"/>
-
-### Dashboard
-<img src="docs/screenshots/dashboard.png" width="700"/>
-
-### Tasks Page
-<img src="docs/screenshots/tasks.png" width="700"/>
-
-### New Task Modal
-<img src="docs/screenshots/new-task.png" width="350"/>
-
-### Edit Task Modal
-<img src="docs/screenshots/edit-task.png" width="350"/>
-
-
-
-
-
 
 
 
@@ -95,3 +74,26 @@ GitHub Actions runs on every push to `main`:
 |---|---|---|
 | admin@taskflow.com | admin123 | ADMIN |
 | user@taskflow.com | user123 | USER |
+
+
+## Screenshots
+
+### Login Page
+<img src="docs/screenshots/login.png" width="400"/>
+
+### Dashboard
+<img src="docs/screenshots/dashboard.png" width="700"/>
+
+### Tasks Page
+<img src="docs/screenshots/tasks.png" width="700"/>
+
+### New Task Modal
+<img src="docs/screenshots/new-task.png" width="350"/>
+
+### Edit Task Modal
+<img src="docs/screenshots/edit-task.png" width="350"/>
+
+
+
+
+
