@@ -41,6 +41,10 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
+      - name: Grant mvnw permission
+        working-directory: backend
+        run: chmod +x mvnw
+      
       - name: Build backend
         working-directory: backend
         env:
