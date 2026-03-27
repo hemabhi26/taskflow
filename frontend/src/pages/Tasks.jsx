@@ -44,16 +44,12 @@ export default function Tasks() {
   }
 
   const handleSave = async (form) => {
-  try {
     if (editTask?.id) {
       await updateTask(editTask.id, form)
     } else {
       await createTask(form)
     }
     fetchTasks()
-    } catch (err) {
-      throw err  // ← remove the setError, just re-throw so TaskModal handles it
-    }
   }
 
   const handleEdit = (task) => {
