@@ -1,24 +1,40 @@
 import { useState, useEffect } from 'react'
+import api from '../api/axios'
 
-export default function TaskModal({ task, onClose, onSave }) {
+export default function TaskModal({ task, onClose, onSave, currentUser }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
     status: 'TODO',
     priority: 'MEDIUM',
     dueDate: '',
+    assignedToId: '',
   })
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const isAdmin = currentUser?.role === 'ADMIN'
+
+  // fetch user list so admin can pick an assignee
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/users')
+        .then(res => setUsers(res.data))
+        .catch(() => setUsers([]))
+    }
+  }, [isAdmin])
+
+  // pre-fill form when editing an existing task
   useEffect(() => {
     if (task) {
       setForm({
-        title: task.title || '',
-        description: task.description || '',
-        status: task.status || 'TODO',
-        priority: task.priority || 'MEDIUM',
-        dueDate: task.dueDate || '',
+        title:        task.title        || '',
+        description:  task.description  || '',
+        status:       task.status       || 'TODO',
+        priority:     task.priority     || 'MEDIUM',
+        dueDate:      task.dueDate      || '',
+        assignedToId: task.assignedToId || task.assignedTo?.id || '',
       })
     }
   }, [task])
@@ -32,7 +48,14 @@ export default function TaskModal({ task, onClose, onSave }) {
     setError('')
     setLoading(true)
     try {
-      await onSave(form)
+      // only send assignedToId if admin picked one
+      const payload = { ...form }
+      if (!isAdmin || !payload.assignedToId) {
+        delete payload.assignedToId
+      } else {
+        payload.assignedToId = Number(payload.assignedToId)
+      }
+      await onSave(payload)
       onClose()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save task')
@@ -44,6 +67,8 @@ export default function TaskModal({ task, onClose, onSave }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+
+        {/* header */}
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg font-bold text-gray-800">
             {task?.id ? 'Edit Task' : 'New Task'}
@@ -56,6 +81,8 @@ export default function TaskModal({ task, onClose, onSave }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input
@@ -68,6 +95,7 @@ export default function TaskModal({ task, onClose, onSave }) {
             />
           </div>
 
+          {/* description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
@@ -80,6 +108,7 @@ export default function TaskModal({ task, onClose, onSave }) {
             />
           </div>
 
+          {/* status + priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -110,6 +139,7 @@ export default function TaskModal({ task, onClose, onSave }) {
             </div>
           </div>
 
+          {/* due date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
             <input
@@ -121,6 +151,30 @@ export default function TaskModal({ task, onClose, onSave }) {
             />
           </div>
 
+          {/* assignee — only visible to admin */}
+          {isAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Assign To
+                <span className="ml-1 text-xs text-gray-400 font-normal">(optional)</span>
+              </label>
+              <select
+                name="assignedToId"
+                value={form.assignedToId}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">— Unassigned —</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.email})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* buttons */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -137,6 +191,7 @@ export default function TaskModal({ task, onClose, onSave }) {
               {loading ? 'Saving...' : 'Save Task'}
             </button>
           </div>
+
         </form>
       </div>
     </div>

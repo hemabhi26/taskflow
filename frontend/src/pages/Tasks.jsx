@@ -3,9 +3,11 @@ import Navbar from '../components/Navbar'
 import TaskCard from '../components/TaskCard'
 import TaskModal from '../components/TaskModal'
 import { getTasks, createTask, updateTask, deleteTask } from '../api/tasks'
+import api from '../api/axios'
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)   // ← new
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
@@ -13,8 +15,19 @@ export default function Tasks() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    fetchCurrentUser()   // ← new
     fetchTasks()
   }, [])
+
+  // ── fetch who is logged in so we can pass role to TaskModal ──────────────
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.get('/users/me')
+      setCurrentUser(res.data)
+    } catch (err) {
+      console.error('Failed to fetch current user', err)
+    }
+  }
 
   const fetchTasks = async () => {
     try {
@@ -131,11 +144,13 @@ export default function Tasks() {
         )}
       </div>
 
+      {/* ← currentUser passed here so TaskModal knows if user is ADMIN */}
       {showModal && (
         <TaskModal
           task={editTask}
           onClose={() => setShowModal(false)}
           onSave={handleSave}
+          currentUser={currentUser}
         />
       )}
     </div>
