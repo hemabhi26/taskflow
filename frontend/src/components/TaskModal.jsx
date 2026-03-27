@@ -11,33 +11,43 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
     assignedToId: '',
   })
   const [users, setUsers] = useState([])
+  const [usersLoaded, setUsersLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const isAdmin = currentUser?.role === 'ADMIN'
 
-  // fetch user list so admin can pick an assignee
+  // Step 1 — fetch user list first (admin only)
   useEffect(() => {
     if (isAdmin) {
       api.get('/users')
-        .then(res => setUsers(res.data))
-        .catch(() => setUsers([]))
+        .then(res => {
+          setUsers(res.data)
+          setUsersLoaded(true)
+        })
+        .catch(() => {
+          setUsers([])
+          setUsersLoaded(true)
+        })
+    } else {
+      setUsersLoaded(true) // non-admin skips user fetch
     }
   }, [isAdmin])
 
-  // pre-fill form when editing an existing task
+  // Step 2 — pre-fill form AFTER users are loaded so dropdown matches correctly
   useEffect(() => {
+    if (!usersLoaded) return
     if (task) {
       setForm({
-        title:        task.title        || '',
-        description:  task.description  || '',
-        status:       task.status       || 'TODO',
-        priority:     task.priority     || 'MEDIUM',
-        dueDate:      task.dueDate      || '',
-        assignedToId: task.assignedToId || task.assignedTo?.id || '',
+        title:        task.title       || '',
+        description:  task.description || '',
+        status:       task.status      || 'TODO',
+        priority:     task.priority    || 'MEDIUM',
+        dueDate:      task.dueDate     || '',
+        assignedToId: task.assignedTo?.id ?? task.assignedToId ?? '',
       })
     }
-  }, [task])
+  }, [task, usersLoaded])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -48,7 +58,6 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
     setError('')
     setLoading(true)
     try {
-      // only send assignedToId if admin picked one
       const payload = { ...form }
       if (!isAdmin || !payload.assignedToId) {
         delete payload.assignedToId
@@ -151,8 +160,8 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
             />
           </div>
 
-          {/* assignee — only visible to admin */}
-          {isAdmin && (
+          {/* assignee — admin only, shown after users loaded */}
+          {isAdmin && usersLoaded && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Assign To
