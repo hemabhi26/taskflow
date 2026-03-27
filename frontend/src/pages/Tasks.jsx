@@ -7,19 +7,19 @@ import api from '../api/axios'
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([])
-  const [currentUser, setCurrentUser] = useState(null)   // ← new
+  const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
-  const [filter, setFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [priorityFilter, setPriorityFilter] = useState('ALL')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    fetchCurrentUser()   // ← new
+    fetchCurrentUser()
     fetchTasks()
   }, [])
 
-  // ── fetch who is logged in so we can pass role to TaskModal ──────────────
   const fetchCurrentUser = async () => {
     try {
       const res = await api.get('/users/me')
@@ -67,10 +67,19 @@ export default function Tasks() {
   }
 
   const filtered = tasks
-    .filter(t => filter === 'ALL' || t.status === filter)
+    .filter(t => statusFilter === 'ALL' || t.status === statusFilter)
+    .filter(t => priorityFilter === 'ALL' || t.priority === priorityFilter)
     .filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
 
-  const filters = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE']
+  const statusFilters = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE']
+  const priorityFilters = ['ALL', 'HIGH', 'MEDIUM', 'LOW']
+
+  const priorityStyles = {
+    ALL:    { active: 'bg-gray-700 text-white',   inactive: 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50' },
+    HIGH:   { active: 'bg-red-500 text-white',    inactive: 'bg-white text-red-500 border border-red-300 hover:bg-red-50' },
+    MEDIUM: { active: 'bg-yellow-500 text-white', inactive: 'bg-white text-yellow-600 border border-yellow-300 hover:bg-yellow-50' },
+    LOW:    { active: 'bg-green-500 text-white',  inactive: 'bg-white text-green-600 border border-green-300 hover:bg-green-50' },
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -91,30 +100,51 @@ export default function Tasks() {
           </button>
         </div>
 
-        {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {/* Search */}
+        <div className="mb-3">
           <input
             type="text"
             placeholder="Search tasks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <div className="flex gap-2">
-            {filters.map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-2 rounded-lg text-xs font-medium transition ${
-                  filter === f
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {f.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          <span className="text-xs text-gray-400 font-medium self-center w-16">Status</span>
+          {statusFilters.map(f => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                statusFilter === f
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {f.replace('_', ' ')}
+            </button>
+          ))}
+        </div>
+
+        {/* Priority Filter */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <span className="text-xs text-gray-400 font-medium self-center w-16">Priority</span>
+          {priorityFilters.map(p => (
+            <button
+              key={p}
+              onClick={() => setPriorityFilter(p)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                priorityFilter === p
+                  ? priorityStyles[p].active
+                  : priorityStyles[p].inactive
+              }`}
+            >
+              {p}
+            </button>
+          ))}
         </div>
 
         {/* Tasks Grid */}
@@ -144,7 +174,6 @@ export default function Tasks() {
         )}
       </div>
 
-      {/* ← currentUser passed here so TaskModal knows if user is ADMIN */}
       {showModal && (
         <TaskModal
           task={editTask}
