@@ -44,15 +44,15 @@ export default function Tasks() {
   }
 
   const handleSave = async (form) => {
-    try {
-      if (editTask?.id) {
-        await updateTask(editTask.id, form)
-      } else {
-        await createTask(form)
-      }
-      fetchTasks()
+  try {
+    if (editTask?.id) {
+      await updateTask(editTask.id, form)
+    } else {
+      await createTask(form)
+    }
+    fetchTasks()
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save task. Please try again.')
+      throw err  // ← remove the setError, just re-throw so TaskModal handles it
     }
   }
 

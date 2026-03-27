@@ -14,27 +14,20 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
   const [usersLoaded, setUsersLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
 
   const isAdmin = currentUser?.role === 'ADMIN'
 
-  // Step 1 — fetch user list first (admin only)
   useEffect(() => {
     if (isAdmin) {
       api.get('/users')
-        .then(res => {
-          setUsers(res.data)
-          setUsersLoaded(true)
-        })
-        .catch(() => {
-          setUsers([])
-          setUsersLoaded(true)
-        })
+        .then(res => { setUsers(res.data); setUsersLoaded(true) })
+        .catch(() => { setUsers([]); setUsersLoaded(true) })
     } else {
-      setUsersLoaded(true) // non-admin skips user fetch
+      setUsersLoaded(true)
     }
   }, [isAdmin])
 
-  // Step 2 — pre-fill form AFTER users are loaded so dropdown matches correctly
   useEffect(() => {
     if (!usersLoaded) return
     if (task) {
@@ -51,11 +44,16 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+    // clear field error when user starts typing
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors({ ...fieldErrors, [e.target.name]: '' })
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setFieldErrors({})
     setLoading(true)
     try {
       const payload = { ...form }
@@ -67,7 +65,13 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
       await onSave(payload)
       onClose()
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save task')
+      const data = err.response?.data
+      if (data?.fields) {
+        // backend returned field-level validation errors
+        setFieldErrors(data.fields)
+      } else {
+        setError(data?.message || data?.error || 'Failed to save task. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -85,8 +89,11 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
         </div>
 
+        {/* general error banner */}
         {error && (
-          <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg mb-4 text-sm">{error}</div>
+          <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg mb-4 text-sm">
+            {error}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,10 +105,14 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
               name="title"
               value={form.title}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                fieldErrors.title ? 'border-red-400 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="Task title"
             />
+            {fieldErrors.title && (
+              <p className="text-red-500 text-xs mt-1">⚠ {fieldErrors.title}</p>
+            )}
           </div>
 
           {/* description */}
@@ -112,9 +123,14 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
               value={form.description}
               onChange={handleChange}
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                fieldErrors.description ? 'border-red-400 bg-red-50' : 'border-gray-300'
+              }`}
               placeholder="Optional description"
             />
+            {fieldErrors.description && (
+              <p className="text-red-500 text-xs mt-1">⚠ {fieldErrors.description}</p>
+            )}
           </div>
 
           {/* status + priority */}
@@ -160,7 +176,7 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
             />
           </div>
 
-          {/* assignee — admin only, shown after users loaded */}
+          {/* assignee — admin only */}
           {isAdmin && usersLoaded && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
