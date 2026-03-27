@@ -4,6 +4,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: taskflow-mysql
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: taskflow123
       MYSQL_DATABASE: taskflowdb
@@ -11,6 +12,8 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - taskflow-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -19,6 +22,7 @@ services:
   backend:
     build: ./backend
     container_name: taskflow-backend
+    restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/taskflowdb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
@@ -30,14 +34,23 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - taskflow-network
 
   frontend:
     build: ./frontend
     container_name: taskflow-frontend
+    restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
       - backend
+    networks:
+      - taskflow-network
 
 volumes:
   mysql_data:
+
+networks:
+  taskflow-network:
+    driver: bridge
