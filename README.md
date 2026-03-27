@@ -4,6 +4,23 @@
 
 A full-stack task management app built with React, Spring Boot, MySQL, and Docker.
 
+## Screenshots
+
+### Login Page
+![Login](docs/screenshots/login.png)
+
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Tasks Page
+![Tasks](docs/screenshots/tasks.png)
+
+### New Task Modal
+![New Task](docs/screenshots/new-task.png)
+
+### Edit Task Modal
+![Edit Task](docs/screenshots/edit-task.png)
+
 ## Tech Stack
 - **Frontend**: React + Vite + Tailwind CSS
 - **Backend**: Spring Boot + JPA + MySQL + JWT Auth
