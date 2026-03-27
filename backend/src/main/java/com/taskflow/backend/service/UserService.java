@@ -35,6 +35,22 @@ public class UserService {
         return UserResponse.fromUser(user);
     }
 
+    public UserResponse updateUser(Long id, String name, String email) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // check if new email is already taken by someone else
+        userRepository.findByEmail(email).ifPresent(existing -> {
+            if (!existing.getId().equals(id)) {
+                throw new RuntimeException("Email already in use");
+            }
+        });
+
+        user.setName(name);
+        user.setEmail(email);
+        return UserResponse.fromUser(userRepository.save(user));
+    }
+
     public void deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));

@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar'
 import TaskModal from '../components/TaskModal'
 import { getTasks, createTask, updateTask, deleteTask } from '../api/tasks'
 import { getUsers, deleteUser } from '../api/users'
-import { createTask as createTaskApi } from '../api/tasks'
+import api from '../api/axios'
 
 export default function Admin() {
   const [tasks, setTasks] = useState([])
@@ -12,10 +12,28 @@ export default function Admin() {
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(null)
+
+  // user edit modal state
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [editUser, setEditUser] = useState(null)
+  const [userForm, setUserForm] = useState({ name: '', email: '' })
+  const [userError, setUserError] = useState('')
+  const [userSaving, setUserSaving] = useState(false)
 
   useEffect(() => {
+    fetchCurrentUser()
     fetchData()
   }, [])
+
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.get('/users/me')
+      setCurrentUser(res.data)
+    } catch (err) {
+      console.error('Failed to fetch current user', err)
+    }
+  }
 
   const fetchData = async () => {
     try {
@@ -54,6 +72,28 @@ export default function Admin() {
     if (window.confirm('Delete this user? This will also delete their tasks!')) {
       await deleteUser(id)
       fetchData()
+    }
+  }
+
+  const handleEditUser = (user) => {
+    setEditUser(user)
+    setUserForm({ name: user.name, email: user.email })
+    setUserError('')
+    setShowUserModal(true)
+  }
+
+  const handleSaveUser = async (e) => {
+    e.preventDefault()
+    setUserError('')
+    setUserSaving(true)
+    try {
+      await api.put(`/users/${editUser.id}`, userForm)
+      setShowUserModal(false)
+      fetchData()
+    } catch (err) {
+      setUserError(err.response?.data?.error || 'Failed to update user')
+    } finally {
+      setUserSaving(false)
     }
   }
 
@@ -227,14 +267,22 @@ export default function Admin() {
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-4 py-3">
-                        {user.role !== 'ADMIN' && (
+                        <div className="flex gap-2">
                           <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="text-red-500 hover:underline text-xs"
+                            onClick={() => handleEditUser(user)}
+                            className="text-indigo-600 hover:underline text-xs"
                           >
-                            Delete
+                            Edit
                           </button>
-                        )}
+                          {user.role !== 'ADMIN' && (
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-500 hover:underline text-xs"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -245,12 +293,71 @@ export default function Admin() {
         )}
       </div>
 
+      {/* Task Modal */}
       {showModal && (
         <TaskModal
           task={editTask}
           onClose={() => setShowModal(false)}
           onSave={handleSaveTask}
+          currentUser={currentUser}
         />
+      )}
+
+      {/* User Edit Modal */}
+      {showUserModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-lg font-bold text-gray-800">Edit User</h2>
+              <button onClick={() => setShowUserModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            </div>
+
+            {userError && (
+              <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg mb-4 text-sm">{userError}</div>
+            )}
+
+            <form onSubmit={handleSaveUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={userForm.name}
+                  onChange={e => setUserForm({ ...userForm, name: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Full name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  value={userForm.email}
+                  onChange={e => setUserForm({ ...userForm, email: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Email address"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUserModal(false)}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={userSaving}
+                  className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+                >
+                  {userSaving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )
