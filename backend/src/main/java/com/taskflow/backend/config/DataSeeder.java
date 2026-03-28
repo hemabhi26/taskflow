@@ -1,48 +1,58 @@
 package com.taskflow.backend.config;
-
+ 
 import com.taskflow.backend.entity.Task;
 import com.taskflow.backend.entity.User;
 import com.taskflow.backend.repository.TaskRepository;
 import com.taskflow.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
+ 
+import java.util.Arrays;
+ 
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
-
+ 
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final Environment environment;
+ 
     @Override
     public void run(String... args) throws Exception {
-
+ 
+        // Skip seeding during tests
+        if (Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            System.out.println("Test profile active — skipping DataSeeder.");
+            return;
+        }
+ 
         if (userRepository.count() == 0) {
-
+ 
             User admin = new User();
             admin.setName("Admin User");
             admin.setEmail("admin@taskflow.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(User.Role.ADMIN);
             userRepository.save(admin);
-
+ 
             User user1 = new User();
             user1.setName("John Doe");
             user1.setEmail("john@taskflow.com");
             user1.setPassword(passwordEncoder.encode("john123"));
             user1.setRole(User.Role.USER);
             userRepository.save(user1);
-
+ 
             User user2 = new User();
             user2.setName("Jane Smith");
             user2.setEmail("jane@taskflow.com");
             user2.setPassword(passwordEncoder.encode("jane123"));
             user2.setRole(User.Role.USER);
             userRepository.save(user2);
-
+ 
             Task task1 = new Task();
             task1.setTitle("Setup project repository");
             task1.setDescription("Initialize Git repo and folder structure");
@@ -51,7 +61,7 @@ public class DataSeeder implements CommandLineRunner {
             task1.setCreatedBy(admin);
             task1.setAssignedTo(user1);
             taskRepository.save(task1);
-
+ 
             Task task2 = new Task();
             task2.setTitle("Design database schema");
             task2.setDescription("Create ERD and define all tables");
@@ -60,7 +70,7 @@ public class DataSeeder implements CommandLineRunner {
             task2.setCreatedBy(admin);
             task2.setAssignedTo(user1);
             taskRepository.save(task2);
-
+ 
             Task task3 = new Task();
             task3.setTitle("Build login page");
             task3.setDescription("Create React login form with validation");
@@ -69,7 +79,7 @@ public class DataSeeder implements CommandLineRunner {
             task3.setCreatedBy(admin);
             task3.setAssignedTo(user2);
             taskRepository.save(task3);
-
+ 
             Task task4 = new Task();
             task4.setTitle("Write API documentation");
             task4.setDescription("Document all REST endpoints");
@@ -78,7 +88,7 @@ public class DataSeeder implements CommandLineRunner {
             task4.setCreatedBy(admin);
             task4.setAssignedTo(user2);
             taskRepository.save(task4);
-
+ 
             System.out.println("====================================");
             System.out.println("Seed data created successfully!");
             System.out.println("Admin:  admin@taskflow.com / admin123");
