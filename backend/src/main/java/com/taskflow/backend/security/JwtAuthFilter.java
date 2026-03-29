@@ -53,8 +53,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Token is expired or invalid — clear security context and continue
-            // The request will be rejected by Spring Security if authentication is required
             SecurityContextHolder.clearContext();
         }
  

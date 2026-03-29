@@ -28,10 +28,6 @@ public class TaskService {
     }
 
     // ── helper: check if current user can modify a task ─────────────────────
-    // Rules:  ADMIN → always yes
-    //         Creator of the task → yes
-    //         Person assigned to the task → yes
-    //         Everyone else → RuntimeException (→ 400 via GlobalExceptionHandler)
     private void checkEditPermission(Task task, User currentUser) {
         boolean isAdmin    = currentUser.getRole() == User.Role.ADMIN;
         boolean isCreator  = task.getCreatedBy().getId().equals(currentUser.getId());

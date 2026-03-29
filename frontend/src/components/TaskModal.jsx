@@ -44,7 +44,6 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
-    // clear field error when user starts typing
     if (fieldErrors[e.target.name]) {
       setFieldErrors({ ...fieldErrors, [e.target.name]: '' })
     }
@@ -67,7 +66,6 @@ export default function TaskModal({ task, onClose, onSave, currentUser }) {
     } catch (err) {
       const data = err.response?.data
       if (data?.fields) {
-        // backend returned field-level validation errors
         setFieldErrors(data.fields)
       } else {
         setError(data?.message || data?.error || 'Failed to save task. Please try again.')

@@ -15,7 +15,6 @@ export default function Admin() {
   const [error, setError] = useState('')
   const [currentUser, setCurrentUser] = useState(null)
 
-  // user edit modal state
   const [showUserModal, setShowUserModal] = useState(false)
   const [editUser, setEditUser] = useState(null)
   const [userForm, setUserForm] = useState({ name: '', email: '' })
@@ -124,7 +123,6 @@ export default function Admin() {
     LOW: 'bg-green-100 text-green-600',
   }
 
-  // Shared spinner component
   const Spinner = () => (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
       <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>

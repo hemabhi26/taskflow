@@ -13,7 +13,7 @@ public class TaskResponse {
     private Task.Status status;
     private Task.Priority priority;
     private LocalDate dueDate;
-    private Long assignedToId;       // ← added
+    private Long assignedToId;       
     private String assignedToName;
     private String assignedToEmail;
     private String createdByName;
@@ -31,7 +31,7 @@ public class TaskResponse {
         res.setCreatedAt(task.getCreatedAt());
         res.setUpdatedAt(task.getUpdatedAt());
         if (task.getAssignedTo() != null) {
-            res.setAssignedToId(task.getAssignedTo().getId());   // ← added
+            res.setAssignedToId(task.getAssignedTo().getId());   
             res.setAssignedToName(task.getAssignedTo().getName());
             res.setAssignedToEmail(task.getAssignedTo().getEmail());
         }
