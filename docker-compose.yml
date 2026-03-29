@@ -1,5 +1,5 @@
 version: '3.8'
-
+ 
 services:
   mysql:
     image: mysql:8.0
@@ -18,11 +18,14 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
-
+ 
   backend:
     build: ./backend
     container_name: taskflow-backend
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
@@ -36,7 +39,7 @@ services:
         condition: service_healthy
     networks:
       - taskflow-network
-
+ 
   frontend:
     build: ./frontend
     container_name: taskflow-frontend
@@ -47,10 +50,10 @@ services:
       - backend
     networks:
       - taskflow-network
-
+ 
 volumes:
   mysql_data:
-
+ 
 networks:
   taskflow-network:
     driver: bridge
