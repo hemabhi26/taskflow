@@ -298,6 +298,35 @@ Pipeline runs on every push and pull request to `main`:
 
 ---
 
+## Database Queries (Local Inspection)
+
+Connect to MySQL:
+```bash
+mysql -u root -p
+```
+
+Then run the following queries to inspect your data:
+
+```sql
+USE taskflowdb;
+
+-- View all users
+SELECT id, name, email, role, created_at FROM users;
+
+-- View all tasks
+SELECT id, title, status, priority, due_date FROM tasks;
+
+-- View tasks with creator and assignee names
+SELECT t.title, t.status, t.priority,
+       c.name AS created_by,
+       a.name AS assigned_to
+FROM tasks t
+JOIN users c ON t.created_by = c.id
+JOIN users a ON t.assigned_to = a.id;
+```
+
+---
+
 ## Security Notes
 - Do not commit real secrets in source control
 - Keep `.env` out of Git (already ignored at root)
